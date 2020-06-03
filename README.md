@@ -1,0 +1,1 @@
+# Elasticsearch Init Scripts Docker
