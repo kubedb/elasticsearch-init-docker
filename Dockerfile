@@ -13,12 +13,10 @@ RUN set -x                                                                      
 
 FROM busybox
 
-RUN mkdir /usr/share/elasticsearch/plugins/opendistro_security/securityconfig
-RUN mkdir /elasticsearch/temp-config
-RUN mkdir /elasticsearch/custom-config
-
-COPY securityconfig securityconfig
+COPY securityconfig/ /securityconfig/
+COPY config-merger.sh /usr/local/bin/config-merger.sh
 COPY --from=builder /yq /usr/bin/yq
-COPY config-merger.sh /usr/bin/config-merger.sh
 
-ENTRYPOINT ["/usr/bin/config-merger.sh"]
+RUN chmod -c 755 /usr/local/bin/config-merger.sh
+
+ENTRYPOINT ["/bin/sh","/usr/local/bin/config-merger.sh"]

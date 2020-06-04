@@ -1,9 +1,9 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := mongodb-init
+BIN        := elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
+TAG        := 0.0.1
 
 .PHONY: push
 push: container
