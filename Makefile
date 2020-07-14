@@ -3,7 +3,7 @@ SHELL=/bin/bash -o pipefail
 REGISTRY   ?= kubedb
 BIN        := elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := 0.0.1
+TAG        := 0.0.2
 
 .PHONY: push
 push: container

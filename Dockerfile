@@ -14,6 +14,7 @@ RUN set -x                                                                      
 FROM busybox
 
 COPY securityconfig/ /securityconfig/
+COPY sgconfig/ /sgconfig/
 COPY config-merger.sh /usr/local/bin/config-merger.sh
 COPY --from=builder /yq /usr/bin/yq
 
