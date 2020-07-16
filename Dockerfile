@@ -8,7 +8,7 @@ RUN set -x \
   && apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl unzip
 
 RUN set -x                                                                                             \
-  && curl -fsSL -o yq https://github.com/mikefarah/yq/releases/download/3.3.1/yq_linux_amd64 \
+  && curl -fsSL -o yq https://github.com/mikefarah/yq/releases/download/3.3.0/yq_linux_amd64 \
   && chmod 755 yq
 
 FROM busybox

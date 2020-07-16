@@ -1,7 +1,7 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := es-init
+BIN        := elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
 TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
@@ -19,4 +19,4 @@ version:
 
 .PHONY: fmt
 fmt:
-	@shfmt -l -w -ci -i 4 *.sh
+	@find . -path ./vendor -prune -o -name '*.sh' -exec shfmt -l -w -ci -i 4 {} \;
