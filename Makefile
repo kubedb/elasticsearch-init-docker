@@ -3,7 +3,7 @@ SHELL=/bin/bash -o pipefail
 REGISTRY   ?= kubedb
 BIN        := es-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := 0.0.2
+TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
 .PHONY: push
 push: container
@@ -16,3 +16,7 @@ container:
 .PHONY: version
 version:
 	@echo ::set-output name=version::$(TAG)
+
+.PHONY: fmt
+fmt:
+	@shfmt -l -w -ci -i 4 *.sh
