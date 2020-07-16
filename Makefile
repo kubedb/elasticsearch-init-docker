@@ -1,7 +1,7 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := elasticsearch-init
+BIN        := es-init
 IMAGE      := $(REGISTRY)/$(BIN)
 TAG        := 0.0.2
 
