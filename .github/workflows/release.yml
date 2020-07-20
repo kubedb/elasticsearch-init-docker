@@ -28,6 +28,10 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
+      - name: Run checks
+        run: |
+          make ci
+
       - name: Build
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -20,3 +20,12 @@ version:
 .PHONY: fmt
 fmt:
 	@find . -path ./vendor -prune -o -name '*.sh' -exec shfmt -l -w -ci -i 4 {} \;
+
+.PHONY: verify
+verify: fmt
+	@if !(git diff --exit-code HEAD); then \
+		echo "files are out of date, run make fmt"; exit 1; \
+	fi
+
+.PHONY: ci
+ci: verify
