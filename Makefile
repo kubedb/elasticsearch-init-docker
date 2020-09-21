@@ -5,20 +5,26 @@ BIN        := elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
 TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-ES_BIN        := elasticsearch
-ES_IMAGE      := $(REGISTRY)/$(ES_BIN)
-ES_TAG        := 7.9.1-xpack
+ES_BIN     := elasticsearch
+ES_IMAGE   := $(REGISTRY)/$(ES_BIN)
+ES_TAG     := 7.9.1-xpack
+
+BUILD_DIRS := bin
+
+$(BUILD_DIRS):
+	@mkdir -p $@
 
 .PHONY: push
 push: container
 	docker push $(IMAGE):$(TAG)
 
 .PHONY: container
-container:
-	@sed															\
-	    -e 's|{ELASTICSEARCH_IMAGE}|$(ES_IMAGE):$(ES_TAG)|g'		\
-	    Dockerfile.in > Dockerfile;
-	docker build -t $(IMAGE):$(TAG) .
+container: $(BUILD_DIRS)
+	@rm -rf bin/.dockerfile;                                 \
+	sed                                                      \
+	    -e 's|{ELASTICSEARCH_IMAGE}|$(ES_IMAGE):$(ES_TAG)|g' \
+	    Dockerfile.in > bin/.dockerfile;                     \
+	docker build -t $(IMAGE):$(TAG) -f bin/.dockerfile .
 
 .PHONY: version
 version:
