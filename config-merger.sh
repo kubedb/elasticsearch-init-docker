@@ -24,7 +24,10 @@ chown -R $UID:$UID /usr/share/elasticsearch/data
 cp -f -R $DEFAULT_CONFIG_DIR/* $CONFIG_DIR
 
 # load default securityconfig files to securityconfig directory
-cp -f -R $DEFAULT_SECURITY_CONFIG_DIR/* $SECURITY_CONFIG_DIR
+# if the security is disabled, security config directory will exist.
+if [ -d $SECURITY_CONFIG_DIR ]; then
+    cp -f -R $DEFAULT_SECURITY_CONFIG_DIR/* $SECURITY_CONFIG_DIR
+fi
 
 # For Elasticsearch config directory
 for FILE_DIR in "$CONFIG_DIR"/*; do
@@ -160,131 +163,136 @@ for FILE_DIR in "$CONFIG_DIR"/*; do
 done
 
 # for securitconfig files
-for FILE_DIR in "$SECURITY_CONFIG_DIR"/*; do
-    # store original file permissions
-    ORIGINAL_PERMISSION=$(stat -c '%a' "$FILE_DIR")
+# if security is disabled, security config directory will exist.
+if [ -d $SECURITY_CONFIG_DIR ]; then
 
-    # extract file name
-    FILE_NAME=$(basename -- "$FILE_DIR")
+    for FILE_DIR in "$SECURITY_CONFIG_DIR"/*; do
+        # store original file permissions
+        ORIGINAL_PERMISSION=$(stat -c '%a' "$FILE_DIR")
 
-    # extract file extension
-    EXTENSION="${FILE_NAME##*.}"
+        # extract file name
+        FILE_NAME=$(basename -- "$FILE_DIR")
 
-    # For yml files, yq tool is used
-    if [[ "$EXTENSION" == "yml" ]]; then
-        # merge operator generated config with the default one
-        if [ -f $TEMP_CONFIG_DIR/"$FILE_NAME" ]; then
-            yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$FILE_NAME"
-        fi
+        # extract file extension
+        EXTENSION="${FILE_NAME##*.}"
 
-        # merge user provided custom config with the updated one
-        if [ -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" ]; then
-            yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$FILE_NAME"
-        fi
-
-        INGEST_FILE_NAME="ingest-$FILE_NAME"
-        # apply ingest-{file_name} configs only to ingest nodes
-        if [[ "$NODE_INGEST" == true ]]; then
-
+        # For yml files, yq tool is used
+        if [[ "$EXTENSION" == "yml" ]]; then
             # merge operator generated config with the default one
-            if [ -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME"
+            if [ -f $TEMP_CONFIG_DIR/"$FILE_NAME" ]; then
+                yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$FILE_NAME"
             fi
 
             # merge user provided custom config with the updated one
-            if [ -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME"
-            fi
-        fi
-
-        DATA_FILE_NAME="data-$FILE_NAME"
-        # apply data-{file_name} configs only to data nodes
-        if [[ "$NODE_DATA" == true ]]; then
-
-            # merge operator generated config with the default one
-            if [ -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$DATA_FILE_NAME"
+            if [ -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" ]; then
+                yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$FILE_NAME"
             fi
 
-            # merge user provided custom config with the updated one
-            if [ -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME"
+            INGEST_FILE_NAME="ingest-$FILE_NAME"
+            # apply ingest-{file_name} configs only to ingest nodes
+            if [[ "$NODE_INGEST" == true ]]; then
+
+                # merge operator generated config with the default one
+                if [ -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME"
+                fi
+
+                # merge user provided custom config with the updated one
+                if [ -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME"
+                fi
             fi
-        fi
 
-        MASTER_FILE_NAME="master-$FILE_NAME"
-        # apply master-{file_name} configs only to master nodes
-        if [[ "$NODE_MASTER" == true ]]; then
+            DATA_FILE_NAME="data-$FILE_NAME"
+            # apply data-{file_name} configs only to data nodes
+            if [[ "$NODE_DATA" == true ]]; then
 
-            # merge operator generated config with the default one
-            if [ -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME"
+                # merge operator generated config with the default one
+                if [ -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$DATA_FILE_NAME"
+                fi
+
+                # merge user provided custom config with the updated one
+                if [ -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME"
+                fi
             fi
 
-            # merge user provided custom config with the updated one
-            if [ -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
-                yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME"
+            MASTER_FILE_NAME="master-$FILE_NAME"
+            # apply master-{file_name} configs only to master nodes
+            if [[ "$NODE_MASTER" == true ]]; then
+
+                # merge operator generated config with the default one
+                if [ -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME"
+                fi
+
+                # merge user provided custom config with the updated one
+                if [ -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
+                    yq merge -i --overwrite "$FILE_DIR" $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME"
+                fi
             fi
-        fi
 
-    else
-        # process non-yml files
-        # overwrite the default config with the operator generated one
-        if [ -f $TEMP_CONFIG_DIR/"$FILE_NAME" ]; then
-            cp -f $TEMP_CONFIG_DIR/"$FILE_NAME" "$FILE_DIR"
-        fi
-
-        # overwrite the updated config with the user provided one
-        if [ -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" ]; then
-            cp -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" "$FILE_DIR"
-        fi
-
-        INGEST_FILE_NAME="ingest-$FILE_NAME"
-        # apply ingest-{file_name} configs only to ingest nodes
-        if [[ "$NODE_INGEST" == true ]]; then
-
+        else
+            # process non-yml files
             # overwrite the default config with the operator generated one
-            if [ -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
-                cp -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" "$FILE_DIR"
+            if [ -f $TEMP_CONFIG_DIR/"$FILE_NAME" ]; then
+                cp -f $TEMP_CONFIG_DIR/"$FILE_NAME" "$FILE_DIR"
             fi
 
             # overwrite the updated config with the user provided one
-            if [ -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
-                cp -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" "$FILE_DIR"
+            if [ -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" ]; then
+                cp -f $CUSTOM_CONFIG_DIR/"$FILE_NAME" "$FILE_DIR"
+            fi
+
+            INGEST_FILE_NAME="ingest-$FILE_NAME"
+            # apply ingest-{file_name} configs only to ingest nodes
+            if [[ "$NODE_INGEST" == true ]]; then
+
+                # overwrite the default config with the operator generated one
+                if [ -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
+                    cp -f $TEMP_CONFIG_DIR/"$INGEST_FILE_NAME" "$FILE_DIR"
+                fi
+
+                # overwrite the updated config with the user provided one
+                if [ -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" ]; then
+                    cp -f $CUSTOM_CONFIG_DIR/"$INGEST_FILE_NAME" "$FILE_DIR"
+                fi
+            fi
+
+            DATA_FILE_NAME="data-$FILE_NAME"
+            # apply data-{file_name} configs only to data nodes
+            if [[ "$NODE_DATA" == true ]]; then
+
+                # overwrite the default config with the operator generated one
+                if [ -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
+                    cp -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" "$FILE_DIR"
+                fi
+
+                # overwrite the updated config with the user provided one
+                if [ -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
+                    cp -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" "$FILE_DIR"
+                fi
+            fi
+
+            MASTER_FILE_NAME="master-$FILE_NAME"
+            # apply master-{file_name} configs only to master nodes
+            if [[ "$NODE_MASTER" == true ]]; then
+
+                # overwrite the default config with the operator generated one
+                if [ -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
+                    cp -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" "$FILE_DIR"
+                fi
+
+                # overwrite the updated config with the user provided one
+                if [ -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
+                    cp -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" "$FILE_DIR"
+                fi
             fi
         fi
 
-        DATA_FILE_NAME="data-$FILE_NAME"
-        # apply data-{file_name} configs only to data nodes
-        if [[ "$NODE_DATA" == true ]]; then
+        # restore original file permission
+        chmod "$ORIGINAL_PERMISSION" "$FILE_DIR"
+    done
 
-            # overwrite the default config with the operator generated one
-            if [ -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
-                cp -f $TEMP_CONFIG_DIR/"$DATA_FILE_NAME" "$FILE_DIR"
-            fi
-
-            # overwrite the updated config with the user provided one
-            if [ -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" ]; then
-                cp -f $CUSTOM_CONFIG_DIR/"$DATA_FILE_NAME" "$FILE_DIR"
-            fi
-        fi
-
-        MASTER_FILE_NAME="master-$FILE_NAME"
-        # apply master-{file_name} configs only to master nodes
-        if [[ "$NODE_MASTER" == true ]]; then
-
-            # overwrite the default config with the operator generated one
-            if [ -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
-                cp -f $TEMP_CONFIG_DIR/"$MASTER_FILE_NAME" "$FILE_DIR"
-            fi
-
-            # overwrite the updated config with the user provided one
-            if [ -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" ]; then
-                cp -f $CUSTOM_CONFIG_DIR/"$MASTER_FILE_NAME" "$FILE_DIR"
-            fi
-        fi
-    fi
-
-    # restore original file permission
-    chmod "$ORIGINAL_PERMISSION" "$FILE_DIR"
-done
+fi
