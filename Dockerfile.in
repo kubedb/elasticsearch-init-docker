@@ -13,8 +13,9 @@ RUN set -x                                                                      
 
 FROM {ELASTICSEARCH_IMAGE} as elasticsearch
 
-FROM busybox
+FROM alpine:3.13.1
 
+RUN apk add --no-cache bash
 COPY config-merger.sh /usr/local/bin/config-merger.sh
 COPY --from=builder /yq /usr/bin/yq
 COPY --from=elasticsearch /usr/share/elasticsearch/config /elasticsearch/default-config
@@ -22,4 +23,4 @@ COPY --from=elasticsearch /usr/share/elasticsearch/plugins/search-guard-7/sgconf
 
 RUN chmod -c 755 /usr/local/bin/config-merger.sh
 
-ENTRYPOINT ["/bin/sh","/usr/local/bin/config-merger.sh"]
+ENTRYPOINT ["/bin/bash","/usr/local/bin/config-merger.sh"]
