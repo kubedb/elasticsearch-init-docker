@@ -3,7 +3,7 @@
 set -eo pipefail
 set -x
 
-UID=${UID:-1000}
+ELASTICSEARCH_UID=${ELASTICSEARCH_UID:-1000}
 # directory for default config files
 DEFAULT_CONFIG_DIR=/elasticsearch/default-config
 # directory for operator generated files
@@ -14,14 +14,14 @@ CUSTOM_CONFIG_DIR=/elasticsearch/custom-config
 CONFIG_DIR=/usr/share/elasticsearch/config
 
 echo "changing the ownership of data folder: /usr/share/elasticsearch/data"
-chown -R $UID:$UID /usr/share/elasticsearch/data
+chown -R "$ELASTICSEARCH_UID":"$ELASTICSEARCH_UID" /usr/share/elasticsearch/data
 
 # load default config files to config directory
 cp -f -R $DEFAULT_CONFIG_DIR/* $CONFIG_DIR
 
 for FILE_DIR in "$CONFIG_DIR"/*; do
     # store original file permissions
-    ORIGINAL_PERMISSION=$(stat -c '%a' $FILE_DIR)
+    ORIGINAL_PERMISSION=$(stat -c '%a' "$FILE_DIR")
 
     # extract file name
     FILE_NAME=$(basename -- "$FILE_DIR")

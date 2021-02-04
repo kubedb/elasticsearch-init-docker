@@ -7,7 +7,7 @@ TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo 
 
 ES_BIN     := elasticsearch
 ES_IMAGE   := $(REGISTRY)/$(ES_BIN)
-ES_TAG     := $(TAG)
+ES_TAG     := $(shell echo $(TAG)| sed 's/xpack.*/xpack/1')
 
 BUILD_DIRS := bin
 
