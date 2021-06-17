@@ -5,7 +5,7 @@ BIN        := elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
 TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-DB_IMAGE   := "elasticsearch:7.13.1"
+DB_IMAGE   := "elasticsearch:7.13.2"
 
 BUILD_DIRS := bin
 
