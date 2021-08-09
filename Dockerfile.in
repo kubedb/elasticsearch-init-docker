@@ -23,6 +23,3 @@ RUN cp -r /usr/share/elasticsearch/config/* /elasticsearch/default-config/
 RUN chown 1000:0 -R /elasticsearch/default-config
 
 RUN chmod -c 755 /usr/local/bin/config-merger.sh
-
-# https://stackoverflow.com/a/41207569/11032044
-ENTRYPOINT ["/usr/bin/env"]
