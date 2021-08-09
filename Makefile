@@ -1,11 +1,12 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := elasticsearch-init
+BIN        ?= elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
+TAG        ?= $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-DB_IMAGE   := "elasticsearch:7.13.2"
+DB_IMAGE   ?= "elasticsearch:7.14.0"
+ES_PLUGINS ?=
 
 BUILD_DIRS := bin
 
@@ -21,6 +22,7 @@ container: $(BUILD_DIRS)
 	@rm -rf bin/.dockerfile;                                 \
 	sed                                                      \
 	    -e 's|{ELASTICSEARCH_IMAGE}|$(DB_IMAGE)|g'           \
+	    -e 's|{ELASTICSEARCH_PLUGINS}|$(ES_PLUGINS)|g'       \
 	    Dockerfile.in > bin/.dockerfile;                     \
 	docker build -t $(IMAGE):$(TAG) -f bin/.dockerfile .
 

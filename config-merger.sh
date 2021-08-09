@@ -12,6 +12,8 @@ TEMP_CONFIG_DIR=/elasticsearch/temp-config
 CUSTOM_CONFIG_DIR=/elasticsearch/custom-config
 # directory for elasticsearch config files
 CONFIG_DIR=/usr/share/elasticsearch/config
+# secure settings directory
+SECURE_SETTINGS_DIR=/elasticsearch/secure-settings
 
 # List of comma seperated roles
 # NODE_ROLES="master, ingest, data" or NODE_ROLES="master"
@@ -103,3 +105,26 @@ for FILE_DIR in "$CONFIG_DIR"/*; do
     # restore original file permission
     chmod "$ORIGINAL_PERMISSION" "$FILE_DIR"
 done
+
+##----------------------------------------Elasticsearch Keystore------------------------------------
+
+# For secure settings
+# On "$ /usr/share/elasticsearch/bin/elasticsearch-keystore create" command,
+# elasticsearch.keystore file is created at config directory.
+# Create the keystore, later add the secure settings to keystore.
+# Since the keystore is generated even before starting the main container, no need to
+# restart/reload the secure settings.
+if [ -d $SECURE_SETTINGS_DIR ]; then
+    echo "Updating secure settings..."
+    if [ -f $CONFIG_DIR/elasticsearch.keystore ]; then
+        echo "Keystore already initialized!"
+    else
+        echo "Creating elasticsearch keystore"
+        /usr/share/elasticsearch/bin/elasticsearch-keystore create
+        for FILE_DIR in "$SECURE_SETTINGS_DIR"/*; do
+            # extract file name
+            FILE_NAME=$(basename -- "$FILE_DIR")
+            /usr/share/elasticsearch/bin/elasticsearch-keystore add-file --force "$FILE_NAME" "$FILE_DIR"
+        done
+    fi
+fi
