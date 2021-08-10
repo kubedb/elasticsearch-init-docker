@@ -1,13 +1,11 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := elasticsearch-init
+BIN        ?= elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
+TAG        ?= $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-ES_BIN     := elasticsearch
-ES_IMAGE   := $(REGISTRY)/$(ES_BIN)
-ES_TAG     := $(shell echo $(TAG)| sed 's/opendistro.*/opendistro/1')
+DB_IMAGE   ?= "amazon/opendistro-for-elasticsearch:1.13.2"
 
 BUILD_DIRS := bin
 
@@ -22,7 +20,7 @@ push: container
 container: $(BUILD_DIRS)
 	@rm -rf bin/.dockerfile;                                 \
 	sed                                                      \
-	    -e 's|{ELASTICSEARCH_IMAGE}|$(ES_IMAGE):$(ES_TAG)|g' \
+	    -e 's|{ELASTICSEARCH_IMAGE}|$(DB_IMAGE)|g'           \
 	    Dockerfile.in > bin/.dockerfile;                     \
 	docker build -t $(IMAGE):$(TAG) -f bin/.dockerfile .
 
