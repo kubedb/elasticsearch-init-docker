@@ -120,11 +120,26 @@ if [ -d $SECURE_SETTINGS_DIR ]; then
         echo "Keystore already initialized!"
     else
         echo "Creating elasticsearch keystore"
-        /usr/share/elasticsearch/bin/elasticsearch-keystore create
+        if [ -f $SECURE_SETTINGS_DIR/password ]; then
+            /usr/share/elasticsearch/bin/elasticsearch-keystore create --password < <(
+                cat $SECURE_SETTINGS_DIR/password && echo
+                cat $SECURE_SETTINGS_DIR/password
+            )
+        else
+            /usr/share/elasticsearch/bin/elasticsearch-keystore create
+        fi
+
         for FILE_DIR in "$SECURE_SETTINGS_DIR"/*; do
             # extract file name
             FILE_NAME=$(basename -- "$FILE_DIR")
-            /usr/share/elasticsearch/bin/elasticsearch-keystore add-file --force "$FILE_NAME" "$FILE_DIR"
+            # Don't add keystore password to the keystore itself
+            if [ "$FILE_NAME" != "password" ]; then
+                if [ -f $SECURE_SETTINGS_DIR/password ]; then
+                    /usr/share/elasticsearch/bin/elasticsearch-keystore add-file --force "$FILE_NAME" "$FILE_DIR" < <(cat $SECURE_SETTINGS_DIR/password)
+                else
+                    /usr/share/elasticsearch/bin/elasticsearch-keystore add-file --force "$FILE_NAME" "$FILE_DIR"
+                fi
+            fi
         done
     fi
 fi

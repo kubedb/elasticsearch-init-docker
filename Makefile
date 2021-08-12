@@ -5,7 +5,9 @@ BIN        ?= elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
 TAG        ?= $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-DB_IMAGE   ?= "elasticsearch:7.14.0"
+DB_BIN     ?= elasticsearch
+DB_TAG     ?= 7.14.0
+DB_IMAGE   ?= $(DB_BIN):$(DB_TAG)
 ES_PLUGINS ?=
 
 BUILD_DIRS := bin
@@ -16,6 +18,11 @@ $(BUILD_DIRS):
 .PHONY: push
 push: container
 	docker push $(IMAGE):$(TAG)
+
+.PHONY: retag
+retag: container
+	docker tag $(IMAGE):$(TAG) $(REGISTRY)/$(DB_BIN):$(DB_TAG)
+	docker push $(REGISTRY)/$(DB_BIN):$(DB_TAG)
 
 .PHONY: container
 container: $(BUILD_DIRS)
