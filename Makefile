@@ -1,11 +1,11 @@
 SHELL=/bin/bash -o pipefail
 
 REGISTRY   ?= kubedb
-BIN        := elasticsearch-init
+BIN        ?= elasticsearch-init
 IMAGE      := $(REGISTRY)/$(BIN)
-TAG        := $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
+TAG        ?= $(shell git describe --exact-match --abbrev=0 2>/dev/null || echo "")
 
-DB_IMAGE   := "floragunncom/sg-elasticsearch:7.10.2-oss-49.0.0"
+DB_IMAGE   ?= "floragunncom/sg-elasticsearch:7.13.4-52.0.0"
 
 BUILD_DIRS := bin
 
